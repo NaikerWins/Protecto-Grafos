@@ -1,9 +1,8 @@
 import sys
 import os
 
-# Añadir las carpetas al path de Python
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-sys.path.append(os.path.join(os.path.dirname(__file__), 'gui'))
+# Añadir el directorio actual al path para que encuentre los módulos
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
     from gui.main_window import MainWindow
@@ -23,4 +22,12 @@ try:
 
 except ImportError as e:
     print(f"Error de importación: {e}")
-    print("Asegúrate de que todos los archivos __init__.py estén creados")
+    print("Estructura de carpetas:")
+    for root, dirs, files in os.walk("."):
+        level = root.replace(".", "").count(os.sep)
+        indent = " " * 2 * level
+        print(f"{indent}{os.path.basename(root)}/")
+        subindent = " " * 2 * (level + 1)
+        for file in files:
+            if file.endswith(".py"):
+                print(f"{subindent}{file}")

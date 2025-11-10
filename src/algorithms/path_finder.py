@@ -1,5 +1,7 @@
 import heapq
+import copy
 from utils.constants import Constants
+from models.burro import Burro
 
 class PathFinder:
     def __init__(self, graph):
@@ -8,130 +10,164 @@ class PathFinder:
     def find_max_stars_route(self, start_star_id, initial_health, initial_age, 
                            initial_energy, initial_grass, death_age):
         """
-        Encuentra la ruta que permite visitar la mayor cantidad de estrellas
-        antes de que el burro muera
+        2. Encuentra la ruta que permite visitar la mayor cantidad de estrellas
+        antes de morir, usando solo valores iniciales
         """
+        start_star_id = str(start_star_id)
         start_star = self.graph.get_star_by_id(start_star_id)
         if not start_star:
-            return []
+            return [start_star_id]
         
-        # Implementación de BFS modificado considerando recursos
-        visited = set()
-        queue = [(start_star_id, initial_energy, initial_grass, initial_age, [start_star_id])]
-        best_route = []
+        # Crear burro con estado inicial
+        burro = Burro(initial_health, initial_energy, initial_grass, initial_age, death_age)
+        
+        best_route = [start_star_id]
+        best_count = 1
+        
+        # Usar BFS para explorar todas las rutas posibles
+        queue = [(start_star_id, [start_star_id], copy.deepcopy(burro))]
         
         while queue:
-            current_star_id, current_energy, current_grass, current_age, route = queue.pop(0)
+            current_star_id, current_route, current_burro = queue.pop(0)
             
-            if len(route) > len(best_route):
-                best_route = route
+            # Actualizar mejor ruta si encontramos más estrellas
+            if len(current_route) > best_count:
+                best_route = current_route
+                best_count = len(current_route)
             
-            if current_age >= death_age:
-                continue
-            
-            current_star = self.graph.get_star_by_id(current_star_id)
+            # Explorar estrellas adyacentes
             adjacent_stars = self.graph.get_adjacent_stars(current_star_id)
-            
             for neighbor_id, distance in adjacent_stars:
-                if neighbor_id not in visited:
-                    # Calcular nuevo estado después del viaje
-                    travel_energy_cost = self._calculate_travel_energy_cost(distance, initial_health)
-                    new_energy = current_energy - travel_energy_cost
-                    new_age = current_age + distance
+                if neighbor_id not in current_route:  # Visitar solo una vez
+                    # Crear copia del burro para simular
+                    new_burro = copy.deepcopy(current_burro)
                     
-                    if new_energy > 0 and new_age < death_age:
-                        visited.add(neighbor_id)
-                        new_route = route + [neighbor_id]
-                        queue.append((neighbor_id, new_energy, current_grass, new_age, new_route))
+                    # Simular viaje a la estrella vecina
+                    if new_burro.travel(distance) and not new_burro.is_dead():
+                        # Visitar la estrella (comer e investigar automáticamente)
+                        neighbor_star = self.graph.get_star_by_id(neighbor_id)
+                        if neighbor_star:
+                            # Investigación automática (50% del tiempo restante)
+                            research_time = neighbor_star.time_to_eat * 0.5
+                            new_burro.visit_star(neighbor_star, research_time)
+                            
+                            if not new_burro.is_dead():
+                                new_route = current_route + [neighbor_id]
+                                queue.append((neighbor_id, new_route, new_burro))
         
         return best_route
     
     def find_optimal_route(self, start_star_id, initial_health, initial_energy, 
                           initial_grass, health_state):
         """
-        Encuentra la ruta óptima considerando consumo de energía y pasto
+        3. Encuentra la ruta óptima que maximiza estrellas con mínimo gasto
+        Considera comer automáticamente cuando energía < 50%
         """
-        # Implementación de Dijkstra modificado
-        distances = {star_id: float('inf') for star_id in self.graph.all_stars}
-        previous = {star_id: None for star_id in self.graph.all_stars}
-        distances[start_star_id] = 0
+        start_star_id = str(start_star_id)
         
-        pq = [(0, start_star_id, initial_energy, initial_grass, [])]
+        # Crear burro simulado
+        burro = Burro(initial_health, initial_energy, initial_grass, 0, float('inf'))
         
-        while pq:
-            current_cost, current_star_id, current_energy, current_grass, current_route = heapq.heappop(pq)
+        visited = set([start_star_id])
+        route = [start_star_id]
+        current_star_id = start_star_id
+        
+        while not burro.is_dead() and len(visited) < len(self.graph.all_stars):
+            # Encontrar la estrella más eficiente para visitar
+            best_next_star = None
+            best_efficiency = -1
             
-            if current_cost > distances[current_star_id]:
-                continue
-            
-            current_star = self.graph.get_star_by_id(current_star_id)
             adjacent_stars = self.graph.get_adjacent_stars(current_star_id)
-            
             for neighbor_id, distance in adjacent_stars:
-                if neighbor_id in current_route:  # Evitar ciclos
-                    continue
-                
-                # Calcular costos de viaje y consumo
-                travel_cost = self._calculate_travel_cost(distance, current_energy, health_state)
-                energy_after_travel = current_energy - travel_cost['energy_cost']
-                grass_after_travel = current_grass - travel_cost['grass_consumed']
-                
-                if energy_after_travel > 0 and grass_after_travel >= 0:
-                    new_cost = current_cost + travel_cost['total_cost']
-                    new_route = current_route + [current_star_id]
+                if neighbor_id not in visited:
+                    # Calcular eficiencia (distancia vs energía disponible)
+                    efficiency = self._calculate_star_efficiency(distance, burro)
+                    if efficiency > best_efficiency:
+                        best_efficiency = efficiency
+                        best_next_star = neighbor_id
+            
+            if best_next_star and burro.travel(distance):
+                # Visitar la estrella (comer automáticamente si es necesario)
+                star = self.graph.get_star_by_id(best_next_star)
+                if star:
+                    research_time = star.time_to_eat * 0.5  # 50% para investigación
+                    burro.visit_star(star, research_time)
                     
-                    if new_cost < distances[neighbor_id]:
-                        distances[neighbor_id] = new_cost
-                        previous[neighbor_id] = current_star_id
-                        heapq.heappush(pq, (new_cost, neighbor_id, energy_after_travel, 
-                                          grass_after_travel, new_route))
+                    route.append(best_next_star)
+                    visited.add(best_next_star)
+                    current_star_id = best_next_star
+                else:
+                    break
+            else:
+                break
         
-        # Reconstruir la ruta óptima
-        return self._reconstruct_optimal_route(previous, start_star_id)
+        return route
     
-    def _calculate_travel_energy_cost(self, distance, health_state):
-        """Calcula el costo de energía para viajar una distancia"""
-        base_cost = distance * 0.1  # Costo base por año luz
+    def find_route_to_destination(self, start_star_id, end_star_id):
+        """Encuentra ruta más corta a destino específico"""
+        return self._a_star_search(start_star_id, end_star_id)
+    
+    def _a_star_search(self, start_star_id, end_star_id):
+        """Algoritmo A* para encontrar el camino más corto"""
+        start_star_id = str(start_star_id)
+        end_star_id = str(end_star_id)
         
-        if health_state == Constants.HEALTH_EXCELLENT:
-            return base_cost * 0.8
-        elif health_state == Constants.HEALTH_GOOD:
-            return base_cost
-        elif health_state == Constants.HEALTH_POOR:
-            return base_cost * 1.2
+        if start_star_id == end_star_id:
+            return [start_star_id]
+        
+        open_set = []
+        heapq.heappush(open_set, (0, start_star_id))
+        
+        came_from = {}
+        g_score = {star_id: float('inf') for star_id in self.graph.all_stars}
+        g_score[start_star_id] = 0
+        
+        f_score = {star_id: float('inf') for star_id in self.graph.all_stars}
+        f_score[start_star_id] = self._heuristic(start_star_id, end_star_id)
+        
+        while open_set:
+            current_f, current_star_id = heapq.heappop(open_set)
+            
+            if current_star_id == end_star_id:
+                return self._reconstruct_path(came_from, current_star_id)
+            
+            adjacent_stars = self.graph.get_adjacent_stars(current_star_id)
+            for neighbor_id, distance in adjacent_stars:
+                tentative_g_score = g_score[current_star_id] + distance
+                
+                if tentative_g_score < g_score[neighbor_id]:
+                    came_from[neighbor_id] = current_star_id
+                    g_score[neighbor_id] = tentative_g_score
+                    f_score[neighbor_id] = tentative_g_score + self._heuristic(neighbor_id, end_star_id)
+                    
+                    if neighbor_id not in [i[1] for i in open_set]:
+                        heapq.heappush(open_set, (f_score[neighbor_id], neighbor_id))
+        
+        return []  # No se encontró camino
+    
+    def _heuristic(self, star1_id, star2_id):
+        """Heurística para A* (distancia euclidiana)"""
+        star1 = self.graph.get_star_by_id(star1_id)
+        star2 = self.graph.get_star_by_id(star2_id)
+        
+        if star1 and star2:
+            dx = star1.coordinates['x'] - star2.coordinates['x']
+            dy = star1.coordinates['y'] - star2.coordinates['y']
+            return (dx**2 + dy**2) ** 0.5
+        return float('inf')
+    
+    def _reconstruct_path(self, came_from, current_star_id):
+        """Reconstruye el camino desde el destino hasta el inicio"""
+        path = [current_star_id]
+        while current_star_id in came_from:
+            current_star_id = came_from[current_star_id]
+            path.append(current_star_id)
+        return path[::-1]
+    
+    def _calculate_star_efficiency(self, distance, burro):
+        """Calcula la eficiencia de visitar una estrella"""
+        # Priorizar estrellas cercanas cuando la energía es baja
+        if burro.current_energy < 30:
+            return 1000 / distance  # Alta prioridad para estrellas cercanas
         else:
-            return base_cost * 1.5
-    
-    def _calculate_travel_cost(self, distance, current_energy, health_state):
-        """Calcula el costo total de viaje entre estrellas"""
-        energy_cost = self._calculate_travel_energy_cost(distance, health_state)
-        
-        # Calcular consumo de pasto si la energía es baja
-        grass_consumed = 0
-        if current_energy - energy_cost < 50:  # Menos del 50% de energía
-            grass_needed = min(1, (50 - (current_energy - energy_cost)) / Constants.ENERGY_FACTORS[health_state])
-            grass_consumed = grass_needed
-        
-        total_cost = distance + energy_cost * 2 + grass_consumed * 10
-        
-        return {
-            'energy_cost': energy_cost,
-            'grass_consumed': grass_consumed,
-            'total_cost': total_cost
-        }
-    
-    def _reconstruct_optimal_route(self, previous, start_star_id):
-        """Reconstruye la ruta óptima desde el diccionario de predecesores"""
-        # Encontrar el nodo con la menor distancia
-        if not any(previous.values()):
-            return []
-        
-        end_star_id = min(previous.keys(), key=lambda x: previous[x] if previous[x] else float('inf'))
-        
-        route = []
-        current = end_star_id
-        while current is not None:
-            route.append(current)
-            current = previous[current]
-        
-        return route[::-1]  # Invertir para tener inicio -> fin
+            return 100 / distance  # Prioridad normal

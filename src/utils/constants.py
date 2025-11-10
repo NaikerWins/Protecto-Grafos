@@ -16,12 +16,26 @@ class Constants:
         "#DDA0DD", "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9"
     ]
     
-    # Factores de energía por estado de salud
+    # Factores de energía por estado de salud (para pasto)
     ENERGY_FACTORS = {
         HEALTH_EXCELLENT: 5,
         HEALTH_GOOD: 3,
-        HEALTH_POOR: 2
+        HEALTH_POOR: 2,
+        HEALTH_DYING: 1,
+        HEALTH_DEAD: 0
     }
     
     # Tiempo máximo de estadía para comer (50%)
     MAX_EATING_TIME_RATIO = 0.5
+    
+    # Porcentaje de energía asociado al estado de salud
+    HEALTH_ENERGY_RATIOS = {
+        HEALTH_EXCELLENT: 1.0,
+        HEALTH_GOOD: 0.75,
+        HEALTH_POOR: 0.5,
+        HEALTH_DYING: 0.25,
+        HEALTH_DEAD: 0.0
+    }
+    
+    # Sonido de muerte (simulado)
+    DEATH_SOUND = "💀 ¡El burro ha muerto! 💀"

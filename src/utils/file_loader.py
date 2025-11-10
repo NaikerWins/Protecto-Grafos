@@ -1,12 +1,14 @@
 import json
 import os
 from exceptions.file_exceptions import FileLoadError, InvalidJSONError
+from models.star import Star
+from models.constellation import Constellation
 
 class FileLoader:
     @staticmethod
     def load_constellations(file_path):
         """
-        Carga el archivo JSON de constelaciones
+        Carga el archivo JSON de constelaciones con todos los campos
         """
         try:
             if not os.path.exists(file_path):
@@ -15,7 +17,6 @@ class FileLoader:
             with open(file_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
             
-            # Validar estructura básica
             if 'constellations' not in data:
                 raise InvalidJSONError("El archivo JSON no contiene el campo 'constellations'")
             
@@ -27,13 +28,17 @@ class FileLoader:
             raise FileLoadError(f"Error al cargar el archivo: {str(e)}")
     
     @staticmethod
-    def save_constellations(file_path, data):
-        """
-        Guarda los datos en un archivo JSON
-        """
-        try:
-            with open(file_path, 'w', encoding='utf-8') as file:
-                json.dump(data, file, indent=2, ensure_ascii=False)
-            return True
-        except Exception as e:
-            raise FileLoadError(f"Error al guardar el archivo: {str(e)}")
+    def process_star_data(star_data, constellation_name, galaxy):
+        """Procesa los datos de una estrella"""
+        return Star(
+            star_id=star_data['id'],
+            label=star_data['label'],
+            coordinates=star_data['coordenates'],
+            radius=star_data['radius'],
+            time_to_eat=star_data['timeToEat'],
+            amount_of_energy=star_data['amountOfEnergy'],
+            research_effect=star_data.get('researchEffect', 0),  # 3a. Efecto de investigación
+            hypergiant=star_data.get('hypergiant', False),
+            linked_to=star_data['linkedTo'],
+            galaxy=galaxy  # 3c. Galaxia de la estrella
+        )
