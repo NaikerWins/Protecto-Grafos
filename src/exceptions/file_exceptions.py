@@ -1,11 +1,11 @@
 class FileLoadError(Exception):
-    """Excepción para errores de carga de archivos"""
+    # Exception for file upload errors
     pass
 
 class InvalidJSONError(Exception):
-    """Excepción para JSON inválido"""
+    # Exception for invalid JSON
     pass
 
 class ConstellationNotFoundError(Exception):
-    """Excepción cuando no se encuentra una constelación"""
+    # Exception when a constellation is not found
     pass

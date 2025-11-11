@@ -3,20 +3,17 @@ class Constants:
     CANVAS_HEIGHT = 600
     CANVAS_MARGIN = 50
     
-    # Estados de salud del burro
     HEALTH_EXCELLENT = "Excelente"
     HEALTH_GOOD = "Buena"
     HEALTH_POOR = "Mala"
     HEALTH_DYING = "Moribundo"
     HEALTH_DEAD = "Muerto"
     
-    # Colores para las constelaciones
     CONSTELLATION_COLORS = [
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7",
         "#DDA0DD", "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9"
     ]
     
-    # Factores de energía por estado de salud (para pasto)
     ENERGY_FACTORS = {
         HEALTH_EXCELLENT: 5,
         HEALTH_GOOD: 3,
@@ -25,10 +22,9 @@ class Constants:
         HEALTH_DEAD: 0
     }
     
-    # Tiempo máximo de estadía para comer (50%)
     MAX_EATING_TIME_RATIO = 0.5
     
-    # Porcentaje de energía asociado al estado de salud
+
     HEALTH_ENERGY_RATIOS = {
         HEALTH_EXCELLENT: 1.0,
         HEALTH_GOOD: 0.75,
@@ -37,5 +33,4 @@ class Constants:
         HEALTH_DEAD: 0.0
     }
     
-    # Sonido de muerte (simulado)
     DEATH_SOUND = "💀 ¡El burro ha muerto! 💀"

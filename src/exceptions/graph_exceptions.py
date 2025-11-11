@@ -1,15 +1,15 @@
 class GraphError(Exception):
-    """Excepción base para errores del grafo"""
+    # Base exception for graph errors
     pass
 
 class StarNotFoundError(GraphError):
-    """Excepción cuando no se encuentra una estrella"""
+    # Exception when a star is not found
     pass
 
 class InvalidRouteError(GraphError):
-    """Excepción para rutas inválidas"""
+    # Exception for invalid routes
     pass
 
 class InsufficientResourcesError(GraphError):
-    """Excepción cuando no hay suficientes recursos"""
+    # Exception when there are insufficient resources
     pass

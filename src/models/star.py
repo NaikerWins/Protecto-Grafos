@@ -7,7 +7,7 @@ class Star:
         self.radius = radius
         self.time_to_eat = time_to_eat
         self.amount_of_energy = amount_of_energy
-        self.research_effect = research_effect  # 3a. Efecto de investigación (puede ser positivo o negativo)
+        self.research_effect = research_effect 
         self.hypergiant = hypergiant
         self.linked_to = linked_to if linked_to else []
         self.galaxy = galaxy
@@ -15,16 +15,13 @@ class Star:
         self.blocked = False
     
     def add_connection(self, star_id, distance):
-        """Añade una conexión a otra estrella"""
         self.linked_to.append({'starId': str(star_id), 'distance': distance})
     
     def remove_connection(self, star_id):
-        """Elimina una conexión a otra estrella"""
         star_id_str = str(star_id)
         self.linked_to = [conn for conn in self.linked_to if str(conn['starId']) != star_id_str]
     
     def get_connections(self):
-        """Retorna todas las conexiones de la estrella"""
         return self.linked_to
     
     def __str__(self):

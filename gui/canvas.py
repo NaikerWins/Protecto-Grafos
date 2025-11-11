@@ -3,7 +3,6 @@ import math
 import sys
 import os
 
-# Añadir el directorio src al path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, '..', 'src')
 sys.path.insert(0, src_dir)
@@ -11,7 +10,6 @@ sys.path.insert(0, src_dir)
 try:
     from utils.constants import Constants
 except ImportError:
-    # Si falla, definir constantes aquí
     class Constants:
         CANVAS_MARGIN = 50
 
@@ -237,15 +235,15 @@ class StarCanvas(tk.Canvas):
         return math.sqrt((px - projection[0])**2 + (py - projection[1])**2)
 
     def highlight_selected_stars(self, start_star_id, end_star_id):
-        """Resalta las estrellas seleccionadas como inicio y fin"""
+        #Highlight the stars selected as the beginning and end
         self.reset_highlight()
         
-        # Resaltar estrella inicial
+        # Highlight initial star
         if start_star_id and start_star_id in self.star_objects:
             star_data = self.star_objects[start_star_id]
             self.itemconfig(star_data['circle'], outline="green", width=4)
         
-        # Resaltar estrella final
+        # Highlight final star
         if end_star_id and end_star_id in self.star_objects:
             star_data = self.star_objects[end_star_id]
             self.itemconfig(star_data['circle'], outline="red", width=4)
@@ -271,7 +269,7 @@ class StarCanvas(tk.Canvas):
             
             colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"]
             constellation = self.graph.get_constellation_for_star(star1.id)
-            color = colors[0]  # Color por defecto
+            color = colors[0]
             
             if constellation and self.graph.constellations:
                 try:
@@ -305,25 +303,25 @@ class StarCanvas(tk.Canvas):
         if not route:
             return
         
-        # Resaltar todas las estrellas de la ruta
+        # Highlight all the stars on the route
         for i, star_id in enumerate(route):
             if star_id in self.star_objects:
                 star_data = self.star_objects[star_id]
                 
-                # Asignar colores según la posición en la ruta
-                if i == 0:  # Inicio
+             
+                if i == 0:  # Star
                     color = "green"
                     width = 4
-                elif i == len(route) - 1:  # Final
+                elif i == len(route) - 1:  # end
                     color = "red"
                     width = 4
-                else:  # Intermedias
+                else: 
                     color = "orange"
                     width = 3
                 
                 self.itemconfig(star_data['circle'], outline=color, width=width)
         
-        # Resaltar las conexiones de la ruta
+        # Highlight route connections
         for i in range(len(route) - 1):
             star1_id, star2_id = route[i], route[i+1]
             key = tuple(sorted([star1_id, star2_id]))

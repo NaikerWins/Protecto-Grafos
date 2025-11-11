@@ -11,50 +11,41 @@ class ResearchEditor:
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz del editor de investigación"""
         self.window = tk.Toplevel(self.parent)
         self.window.title("Editor de Efectos de Investigación")
         self.window.geometry("600x400")
         self.window.transient(self.parent)
         self.window.grab_set()
         
-        # Frame principal
         main_frame = ttk.Frame(self.window, padding=10)
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Título
         title_label = ttk.Label(main_frame, text="Modificar Efectos de Investigación", 
                                font=("Arial", 14, "bold"))
         title_label.pack(pady=10)
         
-        # Descripción
         desc_label = ttk.Label(main_frame, 
                               text="Puedes modificar los efectos de investigación para cada estrella.\n"
                                    "Valores positivos: ganan vida, Valores negativos: pierden vida",
                               font=("Arial", 10))
         desc_label.pack(pady=5)
         
-        # Frame para la tabla
         table_frame = ttk.Frame(main_frame)
         table_frame.pack(fill=tk.BOTH, expand=True, pady=10)
         
-        # Treeview para mostrar estrellas
         columns = ('Estrella', 'Galaxia', 'Efecto Actual', 'Nuevo Efecto')
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=15)
         
-        # Configurar columnas
         for col in columns:
             self.tree.heading(col, text=col)
             self.tree.column(col, width=120)
         
-        # Scrollbar
         scrollbar = ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.tree.yview)
         self.tree.configure(yscrollcommand=scrollbar.set)
         
         self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Botones
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(fill=tk.X, pady=10)
         
@@ -63,22 +54,17 @@ class ResearchEditor:
         ttk.Button(button_frame, text="Cancelar", 
                   command=self.window.destroy).pack(side=tk.RIGHT, padx=5)
         
-        # Cargar datos
         self.load_stars_data()
     
     def load_stars_data(self):
-        """Carga los datos de las estrellas en la tabla"""
-        # Limpiar tabla
         for item in self.tree.get_children():
             self.tree.delete(item)
         
-        # Cargar estrellas
         for star in self.graph.get_all_stars():
             star_id = star.id
             effect_var = tk.StringVar(value=str(star.research_effect))
             self.star_vars[star_id] = effect_var
             
-            # Insertar en tabla
             self.tree.insert('', tk.END, values=(
                 f"{star.label} (ID: {star.id})",
                 getattr(star, 'galaxy', 'Vía Láctea'),
@@ -86,19 +72,15 @@ class ResearchEditor:
                 effect_var.get()
             ), tags=(star_id,))
         
-        # Configurar edición
         self.tree.bind('<Double-1>', self.on_double_click)
     
     def on_double_click(self, event):
-        """Permite editar el efecto al hacer doble clic"""
         item = self.tree.selection()[0]
         star_id = self.tree.item(item, 'tags')[0]
         
-        # Crear ventana de edición
         self.edit_effect(star_id, item)
     
     def edit_effect(self, star_id, tree_item):
-        """Edita el efecto de investigación de una estrella"""
         edit_window = tk.Toplevel(self.window)
         edit_window.title("Editar Efecto")
         edit_window.geometry("300x150")
@@ -123,7 +105,6 @@ class ResearchEditor:
                 new_effect = float(effect_var.get())
                 self.star_vars[star_id].set(str(new_effect))
                 
-                # Actualizar tabla
                 current_values = list(self.tree.item(tree_item, 'values'))
                 current_values[3] = str(new_effect)
                 self.tree.item(tree_item, values=current_values)
@@ -135,7 +116,6 @@ class ResearchEditor:
         ttk.Button(edit_window, text="Guardar", command=save_effect).pack(pady=5)
     
     def save_changes(self):
-        """Guarda todos los cambios realizados"""
         changes = {}
         for star_id, effect_var in self.star_vars.items():
             try:

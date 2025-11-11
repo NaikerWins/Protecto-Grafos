@@ -7,9 +7,6 @@ from models.constellation import Constellation
 class FileLoader:
     @staticmethod
     def load_constellations(file_path):
-        """
-        Carga el archivo JSON de constelaciones con todos los campos
-        """
         try:
             if not os.path.exists(file_path):
                 raise FileLoadError(f"El archivo {file_path} no existe")
@@ -29,7 +26,6 @@ class FileLoader:
     
     @staticmethod
     def process_star_data(star_data, constellation_name, galaxy):
-        """Procesa los datos de una estrella"""
         return Star(
             star_id=star_data['id'],
             label=star_data['label'],
@@ -37,8 +33,8 @@ class FileLoader:
             radius=star_data['radius'],
             time_to_eat=star_data['timeToEat'],
             amount_of_energy=star_data['amountOfEnergy'],
-            research_effect=star_data.get('researchEffect', 0),  # 3a. Efecto de investigación
+            research_effect=star_data.get('researchEffect', 0),
             hypergiant=star_data.get('hypergiant', False),
             linked_to=star_data['linkedTo'],
-            galaxy=galaxy  # 3c. Galaxia de la estrella
+            galaxy=galaxy 
         )

@@ -3,7 +3,6 @@ from utils.constants import Constants
 class EnergyCalculator:
     @staticmethod
     def calculate_energy_consumption(time_spent, health_state):
-        """Calcula el consumo de energía basado en el tiempo y estado de salud"""
         base_consumption = time_spent * 0.1
         
         if health_state == Constants.HEALTH_EXCELLENT:
@@ -17,18 +16,15 @@ class EnergyCalculator:
     
     @staticmethod
     def calculate_energy_gain_from_grass(grass_kg, health_state):
-        """Calcula la energía ganada al consumir pasto"""
         energy_factor = Constants.ENERGY_FACTORS.get(health_state, 2)
         return grass_kg * energy_factor
     
     @staticmethod
     def calculate_eating_time(star_time_to_eat, max_time_ratio=Constants.MAX_EATING_TIME_RATIO):
-        """Calcula el tiempo máximo que puede dedicar a comer"""
         return star_time_to_eat * max_time_ratio
     
     @staticmethod
     def calculate_research_energy_cost(research_time, health_state):
-        """Calcula el costo de energía por investigación"""
         base_cost = research_time * 0.2
         
         if health_state == Constants.HEALTH_EXCELLENT:
@@ -42,7 +38,6 @@ class EnergyCalculator:
     
     @staticmethod
     def update_health_state(current_energy, current_health):
-        """Actualiza el estado de salud basado en la energía actual"""
         if current_energy >= 75:
             return Constants.HEALTH_EXCELLENT
         elif current_energy >= 50:

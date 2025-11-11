@@ -1,16 +1,16 @@
 class Validators:
     @staticmethod
     def validate_coordinates(x, y):
-        """Valida que las coordenadas estén dentro del rango permitido"""
+        # Validates that the coordinates are within the allowed range
         return 0 <= x <= 200 and 0 <= y <= 200
     
     @staticmethod
     def validate_energy(energy):
-        """Valida que la energía esté entre 0 y 100"""
+        # Validates that the energy is between 0 and 100
         return 0 <= energy <= 100
     
     @staticmethod
     def validate_health_state(state):
-        """Valida el estado de salud"""
+        # Validates the health state
         valid_states = ["Excelente", "Buena", "Mala", "Moribundo", "Muerto"]
         return state in valid_states

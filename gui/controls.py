@@ -3,7 +3,6 @@ from tkinter import ttk, messagebox
 import sys
 import os
 
-# Añadir el directorio src al path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, '..', 'src')
 sys.path.insert(0, src_dir)
@@ -13,7 +12,6 @@ try:
     from models.burro import Burro
     from gui.research_editor import ResearchEditor
 except ImportError:
-    # Si falla, definir constantes aquí
     class Constants:
         HEALTH_EXCELLENT = "Excelente"
         HEALTH_GOOD = "Buena"
@@ -35,55 +33,42 @@ class ControlPanel(ttk.Frame):
         self._last_health_state = None
         self._last_energy = 0
         
-        # Nuevos atributos
-        self.research_changes = {}  # 3a. Cambios en efectos de investigación
+        self.research_changes = {}  
         
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz de usuario del panel de control CON SCROLL"""
-        # Crear un frame principal con scroll
         main_frame = ttk.Frame(self)
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Crear un canvas y scrollbar
         self.canvas = tk.Canvas(main_frame, bg="white")
         scrollbar = ttk.Scrollbar(main_frame, orient=tk.VERTICAL, command=self.canvas.yview)
         
-        # Frame que contendrá todos los controles (se pondrá dentro del canvas)
         self.scrollable_frame = ttk.Frame(self.canvas)
         
-        # Configurar el canvas para el scroll
         self.scrollable_frame.bind(
             "<Configure>",
             lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         )
         
-        # Crear una ventana en el canvas para el frame scrollable
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=scrollbar.set)
         
-        # Empaquetar canvas y scrollbar
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Configurar el mouse wheel para scroll
         self.canvas.bind("<MouseWheel>", self._on_mousewheel)
         self.scrollable_frame.bind("<MouseWheel>", self._on_mousewheel)
         
-        # Ahora configuramos todos los controles dentro del scrollable_frame
         self.setup_controls_content()
     
     def _on_mousewheel(self, event):
-        """Maneja el scroll con la rueda del mouse"""
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
     
     def setup_controls_content(self):
-        """Configura todo el contenido dentro del frame scrollable"""
         title_label = ttk.Label(self.scrollable_frame, text="Control de Misión", font=("Arial", 14, "bold"))
         title_label.pack(pady=10, fill=tk.X)
         
-        # Configurar todos los sections con fill=X para que se expandan
         self.setup_burro_section()
         self.setup_star_selection()
         self.setup_algorithm_section()
@@ -98,7 +83,6 @@ class ControlPanel(ttk.Frame):
         burro_frame = ttk.LabelFrame(self.scrollable_frame, text="Estado del Burro", padding=10)
         burro_frame.pack(fill=tk.X, pady=5, padx=5)
         
-        # Configurar grid con pesos para que se expanda
         burro_frame.columnconfigure(1, weight=1)
         
         ttk.Label(burro_frame, text="Estado de Salud:").grid(row=0, column=0, sticky=tk.W)
@@ -184,7 +168,6 @@ class ControlPanel(ttk.Frame):
                  font=("Arial", 8), foreground="gray").pack(anchor=tk.W, pady=5)
     
     def setup_research_controls(self):
-        """3a. Controles para modificar efectos de investigación"""
         research_frame = ttk.LabelFrame(self.scrollable_frame, text="Control de Investigación", padding=10)
         research_frame.pack(fill=tk.X, pady=5, padx=5)
         
@@ -197,7 +180,6 @@ class ControlPanel(ttk.Frame):
                  font=("Arial", 8), foreground="gray").pack(anchor=tk.W, pady=5)
     
     def setup_galaxy_controls(self):
-        """3c. Controles para navegación entre galaxias"""
         galaxy_frame = ttk.LabelFrame(self.scrollable_frame, text="Navegación entre Galaxias", padding=10)
         galaxy_frame.pack(fill=tk.X, pady=5, padx=5)
         
@@ -237,7 +219,6 @@ class ControlPanel(ttk.Frame):
         self.reset_btn.pack(fill=tk.X, pady=2)
     
     def setup_burro_status(self):
-        """Nueva sección para mostrar estado actual del burro"""
         status_frame = ttk.LabelFrame(self.scrollable_frame, text="Estado Actual del Burro", padding=10)
         status_frame.pack(fill=tk.X, pady=5, padx=5)
         
@@ -284,7 +265,6 @@ class ControlPanel(ttk.Frame):
                     self.selected_start_star = star_id
                     self.start_star_var.set(f"{star.label} (ID: {star.id})")
                 
-                # Actualizar resaltado en el canvas
                 if hasattr(self.main_app, 'canvas'):
                     self.main_app.canvas.highlight_selected_stars(
                         self.selected_start_star, 
@@ -326,7 +306,6 @@ class ControlPanel(ttk.Frame):
         }
     
     def open_research_editor(self):
-        """3a. Abre el editor de efectos de investigación"""
         if not hasattr(self.main_app, 'graph') or not self.main_app.graph:
             messagebox.showwarning("Advertencia", "Primero carga un archivo de constelaciones")
             return
@@ -343,24 +322,20 @@ class ControlPanel(ttk.Frame):
         
         algorithm_type = self.algorithm_var.get()
         
-        # VERIFICAR que si es "to_destination", haya una estrella final seleccionada
         if algorithm_type == "to_destination" and not self.selected_end_star:
             messagebox.showwarning("Advertencia", "Para 'A Destino Específico' selecciona también una estrella destino (clic derecho)")
             return
         
-        # Pasar explícitamente la estrella final solo cuando sea necesario
         end_star = self.selected_end_star if algorithm_type == "to_destination" else None
         
         self.main_app.calculate_route(self.selected_start_star, algorithm_type, end_star)
     
     def start_step_by_step_journey(self):
-        """Inicia el viaje paso a paso con interacción del usuario"""
         if not self.selected_start_star:
             messagebox.showwarning("Advertencia", "Selecciona una estrella inicial primero")
             return
         
         try:
-            # Crear instancia del burro
             burro_data = self.get_burro_data()
             self.current_burro = Burro(
                 burro_data['health_state'],
@@ -370,7 +345,6 @@ class ControlPanel(ttk.Frame):
                 burro_data['death_age']
             )
             
-            # Calcular ruta - LLAMAR AL MÉTODO CORRECTAMENTE
             algorithm_type = self.algorithm_var.get()
             self.current_route = self.main_app.calculate_route(
                 self.selected_start_star, 
@@ -387,14 +361,12 @@ class ControlPanel(ttk.Frame):
             self.feed_btn.config(state=tk.NORMAL)
             self.update_burro_status()
             
-            # Empezar en la primera estrella
             self.visit_current_star()
             
         except Exception as e:
             messagebox.showerror("Error", f"Error al iniciar viaje: {str(e)}")
     
     def next_step(self):
-        """Avanza al siguiente paso del viaje CON CAMBIOS AUTOMÁTICOS"""
         if not self.current_burro or self.current_star_index >= len(self.current_route) - 1:
             self.end_journey()
             return
@@ -403,37 +375,29 @@ class ControlPanel(ttk.Frame):
             self.burro_died()
             return
         
-        # Viajar a la siguiente estrella
         current_star_id = self.current_route[self.current_star_index]
         next_star_id = self.current_route[self.current_star_index + 1]
         
-        # Calcular distancia
         distance = self.calculate_distance(current_star_id, next_star_id)
         if distance is None:
             messagebox.showerror("Error", "No se puede calcular la distancia entre estrellas")
             return
         
-        # 3b. Realizar viaje (consume VIDA automáticamente)
         if not self.current_burro.travel(distance):
             self.burro_died()
             return
         
         self.current_star_index += 1
         
-        # 3. Visitar estrella (COME e INVESTIGA AUTOMÁTICAMENTE)
         star = self.main_app.graph.get_star_by_id(next_star_id)
         if star:
-            # Aplicar efectos de investigación modificados si existen
             research_effect_override = self.research_changes.get(star.id, None)
             
-            # Investigación automática (50% del tiempo de la estrella)
             research_time = star.time_to_eat * 0.5
             self.current_burro.visit_star(star, research_time, research_effect_override)
         
-        # Actualizar estado AUTOMÁTICAMENTE
         self.update_burro_status()
         
-        # Resaltar en el canvas
         if hasattr(self.main_app, 'canvas'):
             self.main_app.canvas.highlight_star(next_star_id, "yellow")
             self.main_app.canvas.draw_burro(
@@ -441,15 +405,12 @@ class ControlPanel(ttk.Frame):
                 self.main_app.canvas.star_objects[next_star_id]['y']
             )
         
-        # 3c. Verificar si es hipergigante (efecto AUTOMÁTICO)
         if star and star.hypergiant:
             self.handle_hypergiant(star)
         
-        # Mostrar información del paso
         self.show_current_step_info(star)
     
     def visit_current_star(self):
-        """Visita la estrella actual y permite interacción"""
         if self.current_star_index >= len(self.current_route):
             return
         
@@ -459,7 +420,6 @@ class ControlPanel(ttk.Frame):
         if not star:
             return
         
-        # Resaltar estrella actual en el canvas
         if hasattr(self.main_app, 'canvas'):
             self.main_app.canvas.highlight_star(current_star_id, "yellow")
             self.main_app.canvas.draw_burro(
@@ -467,18 +427,16 @@ class ControlPanel(ttk.Frame):
                 self.main_app.canvas.star_objects[current_star_id]['y']
             )
         
-        # Visitar la estrella
         self.current_burro.visit_star(star)
         
-        # Mostrar información en el panel de ruta
+        # Display information in the route panel
         self.show_current_step_info(star)
         
-        # Verificar si es hipergigante
         if star.hypergiant:
             self.handle_hypergiant(star)
     
     def feed_burro(self):
-        """Permite al usuario alimentar al burro MANUALMENTE"""
+        #Can feed manually
         if not self.current_burro or self.current_star_index >= len(self.current_route):
             return
         
@@ -488,7 +446,6 @@ class ControlPanel(ttk.Frame):
         if not star:
             return
         
-        # Preguntar cuánto pasto dar
         grass_window = tk.Toplevel(self)
         grass_window.title("Alimentar Burro")
         grass_window.geometry("300x200")
@@ -518,7 +475,6 @@ class ControlPanel(ttk.Frame):
         def confirm_feed():
             grass_kg = grass_var.get()
             if grass_kg > 0:
-                # CORREGIDO: usar el método público feed_grass
                 energy_gained = self.current_burro.feed_grass(grass_kg, star.time_to_eat)
                 messagebox.showinfo("Alimentación", 
                                   f"El burro ha comido {grass_kg:.1f} kg de pasto\n"
@@ -530,11 +486,10 @@ class ControlPanel(ttk.Frame):
         ttk.Button(grass_window, text="Cancelar", command=grass_window.destroy).pack(pady=5)
     
     def handle_hypergiant(self, star):
-        """3c. Maneja el uso de estrellas hipergigantes entre galaxias"""
+        # It handles the use of hypergiant stars between galaxies
         if not star.hypergiant:
             return
         
-        # Obtener galaxias disponibles
         available_galaxies = list(self.main_app.graph.galaxies)
         if star.galaxy in available_galaxies:
             available_galaxies.remove(star.galaxy)
@@ -546,7 +501,6 @@ class ControlPanel(ttk.Frame):
             self.current_burro.use_hypergiant()
             return
         
-        # Crear ventana de selección de galaxia
         galaxy_window = tk.Toplevel(self)
         galaxy_window.title("Viaje Intergaláctico")
         galaxy_window.geometry("400x300")
@@ -558,14 +512,14 @@ class ControlPanel(ttk.Frame):
                       "Selecciona una galaxia destino:",
                  font=("Arial", 11), justify=tk.CENTER).pack(pady=15)
         
-        # Frame para galaxias
+
         galaxy_frame = ttk.Frame(galaxy_window)
         galaxy_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         
         selected_galaxy = tk.StringVar(value=available_galaxies[0])
         
         for i, galaxy in enumerate(available_galaxies):
-            # Obtener estrellas de destino en esa galaxia
+          
             target_stars = self.main_app.graph.get_stars_by_galaxy(galaxy)
             hypergiants_in_galaxy = [s for s in target_stars if s.hypergiant]
             
@@ -588,7 +542,7 @@ class ControlPanel(ttk.Frame):
                               f"- Pasto duplicado: {self.current_burro.grass:.1f} kg\n"
                               f"- Nueva galaxia: {target_galaxy}")
             
-            # Actualizar controles de galaxia
+
             self.galaxy_var.set(target_galaxy)
             hypergiants_count = len(self.main_app.graph.get_hypergiant_stars(target_galaxy))
             self.hypergiant_var.set(str(hypergiants_count))
@@ -600,7 +554,7 @@ class ControlPanel(ttk.Frame):
         ttk.Button(galaxy_window, text="Cancelar", command=galaxy_window.destroy).pack(pady=5)
     
     def calculate_distance(self, star1_id, star2_id):
-        """Calcula la distancia entre dos estrellas"""
+
         star1 = self.main_app.graph.get_star_by_id(star1_id)
         star2 = self.main_app.graph.get_star_by_id(star2_id)
         
@@ -611,40 +565,32 @@ class ControlPanel(ttk.Frame):
         return None
     
     def update_burro_status(self):
-        """Actualiza la información de estado del burro AUTOMÁTICAMENTE"""
+
         if self.current_burro:
             status = self.current_burro.get_status()
             
-            # Actualizar variables de estado (esto se muestra automáticamente)
             self.health_status_var.set(status['health_state'])
             self.energy_status_var.set(f"{status['current_energy']:.1f}%")
             self.grass_status_var.set(f"{status['grass']:.1f} kg")
             self.life_status_var.set(f"{status['remaining_life']:.1f} años luz")
             
-            # Actualizar galaxia actual
             if 'current_galaxy' in status:
                 self.galaxy_var.set(status['current_galaxy'])
             
-            # Mostrar cambios de estado en el panel de ruta
             self._log_status_change(status)
     
     def _log_status_change(self, status):
-        """Registra cambios de estado en el panel de información"""
         self.route_text.config(state=tk.NORMAL)
         
-        # Verificar si hubo cambio de estado de salud
         if hasattr(self, '_last_health_state') and self._last_health_state != status['health_state']:
             self.route_text.insert(tk.END, f"⚡ Cambio de estado: {self._last_health_state} → {status['health_state']}\n")
         
-        # Verificar si la energía bajó críticamente
         if status['current_energy'] < 25 and status['current_energy'] > 0:
             self.route_text.insert(tk.END, f"⚠️  Energía crítica: {status['current_energy']:.1f}%\n")
         
-        # Verificar si comió automáticamente
         if hasattr(self, '_last_energy') and status['current_energy'] > self._last_energy + 5:
             self.route_text.insert(tk.END, f"🌿 El burro comió automáticamente. Energía: {status['current_energy']:.1f}%\n")
         
-        # Guardar estado actual para comparación
         self._last_health_state = status['health_state']
         self._last_energy = status['current_energy']
         
@@ -652,7 +598,6 @@ class ControlPanel(ttk.Frame):
         self.route_text.config(state=tk.DISABLED)
     
     def show_current_step_info(self, star):
-        """Muestra información del paso actual"""
         if not self.current_burro:
             return
         
@@ -664,14 +609,12 @@ class ControlPanel(ttk.Frame):
         self.route_text.insert(tk.END, f"Pasto: {status['grass']:.1f} kg\n")
         self.route_text.insert(tk.END, f"Vida restante: {status['remaining_life']:.1f} años luz\n")
         
-        # Mostrar efecto de investigación si lo hubo
         if status['research_effects']:
             last_effect = status['research_effects'][-1]
             if last_effect['star'] == star.label:
                 effect_str = f"+{last_effect['effect']}" if last_effect['effect'] > 0 else str(last_effect['effect'])
                 self.route_text.insert(tk.END, f"🔬 Investigación: {effect_str} años luz\n")
         
-        # Mostrar si comió automáticamente
         if status['current_energy'] < 50 and hasattr(self, '_last_energy'):
             if status['current_energy'] > self._last_energy:
                 self.route_text.insert(tk.END, f"🌿 Comió automáticamente: +{(status['current_energy'] - self._last_energy):.1f}% energía\n")
@@ -682,13 +625,10 @@ class ControlPanel(ttk.Frame):
         self.route_text.see(tk.END)
         self.route_text.config(state=tk.DISABLED)
         
-        # Guardar para comparación
         self._last_energy = status['current_energy']
     
     def burro_died(self):
-        """3b. Maneja la muerte del burro con sonido"""
         if self.current_burro:
-            # Reproducir sonido de muerte
             self.current_burro.play_death_sound()
             
             self.route_text.config(state=tk.NORMAL)
@@ -700,11 +640,9 @@ class ControlPanel(ttk.Frame):
             self.next_step_btn.config(state=tk.DISABLED)
             self.feed_btn.config(state=tk.DISABLED)
             
-            # Mostrar reporte final
             self.show_final_report()
     
     def end_journey(self):
-        """Finaliza el viaje exitosamente"""
         self.route_text.config(state=tk.NORMAL)
         self.route_text.insert(tk.END, f"\n🎉 ¡Viaje completado exitosamente! 🎉\n")
         self.route_text.see(tk.END)
@@ -713,11 +651,9 @@ class ControlPanel(ttk.Frame):
         self.next_step_btn.config(state=tk.DISABLED)
         self.feed_btn.config(state=tk.DISABLED)
         
-        # Mostrar reporte final
         self.show_final_report()
     
     def show_final_report(self):
-        """5. Muestra el reporte final completo del viaje"""
         if not self.current_burro:
             return
         
@@ -727,11 +663,9 @@ class ControlPanel(ttk.Frame):
         report_window.title("Reporte Final del Viaje Científico - NASA")
         report_window.geometry("600x500")
         
-        # Frame principal con scroll
         main_frame = ttk.Frame(report_window)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Texto del reporte
         report_text = tk.Text(main_frame, wrap=tk.WORD, padx=10, pady=10, font=("Arial", 10))
         scrollbar = ttk.Scrollbar(main_frame, orient=tk.VERTICAL, command=report_text.yview)
         report_text.configure(yscrollcommand=scrollbar.set)
@@ -739,21 +673,17 @@ class ControlPanel(ttk.Frame):
         report_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Generar reporte detallado
         report_text.insert(tk.END, "🚀 REPORTE FINAL DE MISIÓN ESPACIAL 🚀\n")
         report_text.insert(tk.END, "=" * 50 + "\n\n")
         
-        # Estado final
         emoji = "💀" if not status['is_alive'] else "🎉"
         report_text.insert(tk.END, f"Estado final: {emoji} {'MISIÓN FALLIDA' if not status['is_alive'] else 'MISIÓN EXITOSA'}\n\n")
         
-        # Estadísticas generales
         report_text.insert(tk.END, "📊 ESTADÍSTICAS GENERALES\n")
         report_text.insert(tk.END, f"• Estrellas visitadas: {status['visited_stars_count']}\n")
         report_text.insert(tk.END, f"• Distancia total recorrida: {status['total_distance']:.1f} años luz\n")
         report_text.insert(tk.END, f"• Galaxia final: {status.get('current_galaxy', 'Vía Láctea')}\n")
         
-        # Recursos
         report_text.insert(tk.END, "\n📦 CONSUMO DE RECURSOS\n")
         report_text.insert(tk.END, f"• Pasto consumido: {status['total_food_consumed']:.1f} kg\n")
         report_text.insert(tk.END, f"• Pasto restante: {status['grass']:.1f} kg\n")
@@ -761,7 +691,6 @@ class ControlPanel(ttk.Frame):
         report_text.insert(tk.END, f"• Energía final: {status['current_energy']:.1f}%\n")
         report_text.insert(tk.END, f"• Vida restante: {status['remaining_life']:.1f} años luz\n")
         
-        # Efectos de investigación
         if status['research_effects']:
             report_text.insert(tk.END, "\n🔬 EFECTOS DE INVESTIGACIÓN\n")
             total_gain = sum(effect['effect'] for effect in status['research_effects'] if effect['effect'] > 0)
@@ -771,13 +700,11 @@ class ControlPanel(ttk.Frame):
             report_text.insert(tk.END, f"• Pérdida total de vida: {total_loss:.1f} años luz\n")
             report_text.insert(tk.END, f"• Balance neto: {total_gain + total_loss:+.1f} años luz\n")
             
-            # Mostrar últimos efectos
             report_text.insert(tk.END, "\nÚltimos experimentos:\n")
-            for effect in status['research_effects'][-5:]:  # Mostrar últimos 5
+            for effect in status['research_effects'][-5:]: 
                 effect_str = f"+{effect['effect']}" if effect['effect'] > 0 else str(effect['effect'])
                 report_text.insert(tk.END, f"  • {effect['star']}: {effect_str} años luz\n")
         
-        # Estrellas visitadas por constelación
         report_text.insert(tk.END, "\n⭐ ESTRELLAS VISITADAS\n")
         constellations_visited = {}
         for star in self.current_burro.visited_stars:
@@ -795,7 +722,6 @@ class ControlPanel(ttk.Frame):
                 effect_str = f" (+{effect})" if effect > 0 else f" ({effect})" if effect < 0 else ""
                 report_text.insert(tk.END, f"  {i}. {star.label} - {galaxy}{effect_str}\n")
         
-        # Hipergigantes utilizadas
         hypergiants_used = [star for star in self.current_burro.visited_stars if star.hypergiant]
         if hypergiants_used:
             report_text.insert(tk.END, "\n🌠 ESTRELLAS HIPERGIGANTES UTILIZADAS\n")
@@ -805,15 +731,12 @@ class ControlPanel(ttk.Frame):
         
         report_text.config(state=tk.DISABLED)
         
-        # Botón para exportar
         def export_report():
-            # Aquí se puede implementar exportación a PDF o texto
             messagebox.showinfo("Exportar", "Funcionalidad de exportación en desarrollo")
         
         ttk.Button(report_window, text="Exportar Reporte", command=export_report).pack(pady=10)
     
     def show_route_info(self, route, total_distance=0):
-        """Muestra información de la ruta calculada"""
         self.route_text.config(state=tk.NORMAL)
         self.route_text.delete(1.0, tk.END)
         
@@ -831,7 +754,6 @@ class ControlPanel(ttk.Frame):
         self.route_text.insert(tk.END, f"Total de estrellas: {len(route)}\n")
         self.route_text.insert(tk.END, f"Distancia total: {total_distance:.1f} años luz\n")
         
-        # Información específica por tipo de algoritmo
         if algorithm_type == "max_stars":
             self.route_text.insert(tk.END, "Objetivo: Visitar la mayor cantidad de estrellas antes de morir\n")
         elif algorithm_type == "to_destination":
@@ -854,10 +776,8 @@ class ControlPanel(ttk.Frame):
                 else:
                     prefix = f"{i}. "
                 
-                # Mostrar información adicional para rutas óptimas
                 extra_info = ""
                 if algorithm_type == "optimal_route" and i > 0:
-                    # Calcular distancia desde la estrella anterior
                     prev_star_id = route[i-1]
                     distance = self.calculate_distance(prev_star_id, star_id)
                     if distance:
@@ -868,15 +788,13 @@ class ControlPanel(ttk.Frame):
         self.route_text.config(state=tk.DISABLED)
     
     def reset_journey(self):
-        """Resetea el viaje actual"""
         self.current_burro = None
         self.current_route = []
         self.current_star_index = 0
         self.next_step_btn.config(state=tk.DISABLED)
         self.feed_btn.config(state=tk.DISABLED)
-        self.research_changes = {}  # Limpiar cambios de investigación
+        self.research_changes = {} 
         
-        # Resto del código de reset...
         self.selected_start_star = None
         self.selected_end_star = None
         self.start_star_var.set("No seleccionada")
@@ -886,7 +804,6 @@ class ControlPanel(ttk.Frame):
         self.route_text.insert(tk.END, "Información de la ruta aparecerá aquí...\n\n")
         self.route_text.config(state=tk.DISABLED)
         
-        # Resetear estado del burro
         self.health_status_var.set("No iniciado")
         self.energy_status_var.set("0%")
         self.grass_status_var.set("0 kg")

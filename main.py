@@ -1,7 +1,6 @@
 import sys
 import os
 
-# Añadir el directorio actual al path para que encuentre los módulos
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
@@ -9,7 +8,6 @@ try:
     import tkinter as tk
     
     def main():
-        """Función principal que inicia la aplicación"""
         root = tk.Tk()
         root.title("Sistema de Navegación Estelar - NASA")
         root.geometry("1200x800")

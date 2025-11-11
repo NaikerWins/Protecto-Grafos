@@ -3,7 +3,6 @@ from tkinter import ttk, filedialog, messagebox
 import sys
 import os
 
-# Añadir el directorio src al path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, '..', 'src')
 sys.path.insert(0, src_dir)
@@ -15,7 +14,6 @@ try:
     from utils.file_loader import FileLoader
 except ImportError as e:
     print(f"Error importando módulos: {e}")
-    # Definir clases básicas si falla la importación
     class StarGraph:
         def __init__(self): 
             self.constellations = []
@@ -45,29 +43,22 @@ class MainWindow:
         self.setup_menu()
     
     def setup_ui(self):
-        """Configura la interfaz de usuario principal"""
-        # Frame principal
         main_frame = ttk.Frame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Panel de controles a la izquierda
         self.control_panel = ControlPanel(main_frame, self)
         self.control_panel.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
         
-        # Canvas para visualización a la derecha
         self.canvas = StarCanvas(main_frame, width=800, height=600, bg="white")
         self.canvas.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         
-        # Conectar el canvas con el control panel
         self.canvas.control_panel = self.control_panel
 
     
     def setup_menu(self):
-        """Configura la barra de menú"""
         menubar = tk.Menu(self.root)
         self.root.config(menu=menubar)
         
-        # Menú Archivo
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Archivo", menu=file_menu)
         file_menu.add_command(label="Cargar Constelaciones", command=self.load_constellations)
@@ -75,14 +66,12 @@ class MainWindow:
         file_menu.add_separator()
         file_menu.add_command(label="Salir", command=self.root.quit)
         
-        # Menú Herramientas
         tools_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Herramientas", menu=tools_menu)
         tools_menu.add_command(label="Limpiar Canvas", command=self.clear_canvas)
         tools_menu.add_command(label="Resetear Viaje", command=self.reset_journey)
     
     def load_constellations(self):
-        """Carga un archivo JSON de constelaciones"""
         file_path = filedialog.askopenfilename(
             title="Seleccionar archivo de constelaciones",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
@@ -100,15 +89,12 @@ class MainWindow:
                 messagebox.showerror("Error", f"Error al cargar el archivo: {str(e)}")
     
     def process_constellation_data(self, data):
-        """Procesa los datos de constelaciones y actualiza el grafo"""
         self.graph = StarGraph()
         
-        # Procesar cada constelación
         for constellation_data in data.get('constellations', []):
             constellation = Constellation(constellation_data['name'])
-            galaxy = constellation_data.get('galaxy', 'Vía Láctea')  # 3c. Obtener galaxia
+            galaxy = constellation_data.get('galaxy', 'Vía Láctea')  
             
-            # Procesar cada estrella
             for star_data in constellation_data.get('starts', []):
                 star = Star(
                     star_id=star_data['id'],
@@ -117,16 +103,15 @@ class MainWindow:
                     radius=star_data['radius'],
                     time_to_eat=star_data['timeToEat'],
                     amount_of_energy=star_data['amountOfEnergy'],
-                    research_effect=star_data.get('researchEffect', 0),  # 3a. Efecto de investigación
+                    research_effect=star_data.get('researchEffect', 0),
                     hypergiant=star_data.get('hypergiant', False),
                     linked_to=star_data['linkedTo'],
-                    galaxy=galaxy  # 3c. Galaxia
+                    galaxy=galaxy  
                 )
                 constellation.add_star(star)
             
             self.graph.add_constellation(constellation)
         
-        # Actualizar datos del burro
         burro_data = {
             'initial_energy': data.get('burroenergiaInicial', 100),
             'health_state': data.get('estadoSalud', 'Excelente'),
@@ -140,27 +125,22 @@ class MainWindow:
         self.canvas.draw_graph(self.graph)
     
     def save_state(self):
-        """Guarda el estado actual del sistema"""
         messagebox.showinfo("Información", "Funcionalidad de guardado en desarrollo")
     
     def clear_canvas(self):
-        """Limpia el canvas"""
         self.canvas.delete("all")
         self.graph = StarGraph()
     
     def reset_journey(self):
-        """Resetea el viaje actual"""
         self.canvas.reset_highlight()
         self.control_panel.reset_journey()
     
     def calculate_route(self, start_star_id, algorithm_type, end_star_id=None):
-        """Calcula una ruta basada en los parámetros seleccionados"""
         try:
             if not start_star_id:
                 messagebox.showwarning("Advertencia", "Selecciona una estrella inicial primero")
                 return []
             
-            # Obtener datos del burro desde el panel de control
             burro_data = self.control_panel.get_burro_data()
             
             from src.algorithms.path_finder import PathFinder
@@ -181,26 +161,21 @@ class MainWindow:
                 if not end_star_id:
                     messagebox.showwarning("Advertencia", "Selecciona una estrella destino primero (clic derecho)")
                     return []
-                # Ruta a destino específico
                 route = finder.find_route_to_destination(start_star_id, end_star_id)
             elif algorithm_type == "optimal_route":
-                # Ruta óptima - CORREGIDO: usar solo los parámetros necesarios
                 route = finder.find_optimal_route(
                     start_star_id,
                     burro_data['health_state'],
                     burro_data['initial_energy'],
                     burro_data['grass'],
-                    burro_data['health_state']  # Estado de salud actual
+                    burro_data['health_state']
                 )
             
             if route:
-                # Mostrar la ruta en el canvas
                 self.canvas.highlight_route(route)
                 
-                # Calcular estadísticas
                 total_distance = self.calculate_route_distance(route)
                 
-                # Mostrar información
                 self.control_panel.show_route_info(route, total_distance)
                 
                 return route
@@ -213,7 +188,6 @@ class MainWindow:
             return []
     
     def calculate_route_distance(self, route):
-        """Calcula la distancia total de una ruta"""
         total_distance = 0
         for i in range(len(route) - 1):
             star1 = self.graph.get_star_by_id(route[i])
@@ -226,13 +200,11 @@ class MainWindow:
         return total_distance
     
     def start_journey(self, start_star_id, end_star_id=None):
-        """Inicia el viaje animado del burro"""
         try:
             if not start_star_id:
                 messagebox.showwarning("Advertencia", "Selecciona una estrella inicial primero")
                 return
             
-            # Obtener la ruta
             burro_data = self.control_panel.get_burro_data()
             from src.algorithms.path_finder import PathFinder
             finder = PathFinder(self.graph)
@@ -249,7 +221,6 @@ class MainWindow:
                 )
             
             if route:
-                # Animar el viaje
                 self.canvas.animate_journey(route, speed=1000)
             else:
                 messagebox.showwarning("Advertencia", "No se pudo calcular una ruta para el viaje")
