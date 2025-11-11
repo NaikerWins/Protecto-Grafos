@@ -6,96 +6,183 @@
       "starts": [
         {
           "id": 1,
-          "label": "Alpha1",
+          "label": "Alpha Centauri",
           "linkedTo": [
-            {"starId": 2, "distance": 120},
-            {"starId": 4, "distance": 87},
-            {"starId": 5, "distance": 101}
+            {"starId": 2, "distance": 150},
+            {"starId": 3, "distance": 180},
+            {"starId": 4, "distance": 120}
           ],
-          "radius": 0.4,
+          "radius": 0.8,
           "timeToEat": 3,
-          "amountOfEnergy": 1,
-          "researchEffect": 5,
-          "coordenates": {"x": 25, "y": 34},
+          "amountOfEnergy": 2,
+          "researchEffect": 8,
+          "coordenates": {"x": 30, "y": 30},
           "hypergiant": false
         },
         {
           "id": 2,
-          "label": "Beta23",
+          "label": "Sirius",
           "linkedTo": [
-            {"starId": 1, "distance": 120},
-            {"starId": 7, "distance": 45},
-            {"starId": 3, "distance": 17}
+            {"starId": 1, "distance": 150},
+            {"starId": 5, "distance": 200},
+            {"starId": 6, "distance": 170}
           ],
-          "radius": 0.2,
+          "radius": 1.2,
           "timeToEat": 2,
-          "amountOfEnergy": 2,
-          "researchEffect": -3,
-          "coordenates": {"x": 37, "y": 15},
-          "hypergiant": false
+          "amountOfEnergy": 3,
+          "researchEffect": -4,
+          "coordenates": {"x": 160, "y": 40},
+          "hypergiant": true
         },
         {
           "id": 3,
-          "label": "Alpha53",
+          "label": "Vega",
           "linkedTo": [
-            {"starId": 5, "distance": 86},
-            {"starId": 2, "distance": 17},
-            {"starId": 9, "distance": 15}
+            {"starId": 1, "distance": 180},
+            {"starId": 7, "distance": 190},
+            {"starId": 8, "distance": 160}
           ],
-          "radius": 1,
-          "timeToEat": 1,
-          "amountOfEnergy": 3,
-          "researchEffect": 10,
-          "coordenates": {"x": 75, "y": 43},
-          "hypergiant": true
-        }
-      ]
-    },
-    {
-      "name": "Constelación de la Araña",
-      "galaxy": "Andrómeda",
-      "starts": [
-        {
-          "id": 12,
-          "label": "Beta178",
-          "linkedTo": [
-            {"starId": 14, "distance": 120},
-            {"starId": 17, "distance": 87},
-            {"starId": 11, "distance": 101}
-          ],
-          "radius": 0.6,
-          "timeToEat": 3,
+          "radius": 0.9,
+          "timeToEat": 4,
           "amountOfEnergy": 1,
-          "researchEffect": 2,
-          "coordenates": {"x": 123, "y": 167},
+          "researchEffect": 6,
+          "coordenates": {"x": 50, "y": 150},
           "hypergiant": false
         },
         {
-          "id": 13,
-          "label": "Gama23",
+          "id": 4,
+          "label": "Betelgeuse",
           "linkedTo": [
-            {"starId": 15, "distance": 120},
-            {"starId": 17, "distance": 45}
+            {"starId": 1, "distance": 120},
+            {"starId": 9, "distance": 210},
+            {"starId": 10, "distance": 140}
           ],
-          "radius": 0.8,
-          "timeToEat": 3,
-          "amountOfEnergy": 5,
-          "researchEffect": -5,
-          "coordenates": {"x": 189, "y": 146},
+          "radius": 1.5,
+          "timeToEat": 1,
+          "amountOfEnergy": 4,
+          "researchEffect": -6,
+          "coordenates": {"x": 180, "y": 160},
           "hypergiant": true
         },
         {
-          "id": 4,
-          "label": "Alpha53",
+          "id": 5,
+          "label": "Rigel",
           "linkedTo": [
-            {"starId": 12, "distance": 15}
+            {"starId": 2, "distance": 200},
+            {"starId": 11, "distance": 170},
+            {"starId": 12, "distance": 190}
           ],
-          "radius": 1,
-          "timeToEat": 1,
+          "radius": 1.1,
+          "timeToEat": 3,
+          "amountOfEnergy": 2,
+          "researchEffect": 5,
+          "coordenates": {"x": 140, "y": 180},
+          "hypergiant": false
+        },
+        {
+          "id": 6,
+          "label": "Procyon",
+          "linkedTo": [
+            {"starId": 2, "distance": 170},
+            {"starId": 7, "distance": 220},
+            {"starId": 8, "distance": 130}
+          ],
+          "radius": 0.7,
+          "timeToEat": 2,
           "amountOfEnergy": 3,
-          "researchEffect": 8,
-          "coordenates": {"x": 55, "y": 103},
+          "researchEffect": -3,
+          "coordenates": {"x": 100, "y": 20},
+          "hypergiant": false
+        },
+        {
+          "id": 7,
+          "label": "Altair",
+          "linkedTo": [
+            {"starId": 3, "distance": 190},
+            {"starId": 6, "distance": 220},
+            {"starId": 9, "distance": 180}
+          ],
+          "radius": 0.8,
+          "timeToEat": 4,
+          "amountOfEnergy": 1,
+          "researchEffect": 7,
+          "coordenates": {"x": 20, "y": 100},
+          "hypergiant": false
+        },
+        {
+          "id": 8,
+          "label": "Antares",
+          "linkedTo": [
+            {"starId": 3, "distance": 160},
+            {"starId": 6, "distance": 130},
+            {"starId": 10, "distance": 200}
+          ],
+          "radius": 1.3,
+          "timeToEat": 1,
+          "amountOfEnergy": 5,
+          "researchEffect": -5,
+          "coordenates": {"x": 80, "y": 140},
+          "hypergiant": false
+        },
+        {
+          "id": 9,
+          "label": "Spica",
+          "linkedTo": [
+            {"starId": 4, "distance": 210},
+            {"starId": 7, "distance": 180},
+            {"starId": 11, "distance": 160}
+          ],
+          "radius": 0.9,
+          "timeToEat": 3,
+          "amountOfEnergy": 2,
+          "researchEffect": 4,
+          "coordenates": {"x": 40, "y": 180},
+          "hypergiant": false
+        },
+        {
+          "id": 10,
+          "label": "Pollux",
+          "linkedTo": [
+            {"starId": 4, "distance": 140},
+            {"starId": 8, "distance": 200},
+            {"starId": 12, "distance": 170}
+          ],
+          "radius": 1.0,
+          "timeToEat": 2,
+          "amountOfEnergy": 3,
+          "researchEffect": -2,
+          "coordenates": {"x": 160, "y": 100},
+          "hypergiant": false
+        },
+        {
+          "id": 11,
+          "label": "Deneb",
+          "linkedTo": [
+            {"starId": 5, "distance": 170},
+            {"starId": 9, "distance": 160},
+            {"starId": 12, "distance": 150}
+          ],
+          "radius": 1.4,
+          "timeToEat": 1,
+          "amountOfEnergy": 4,
+          "researchEffect": 9,
+          "coordenates": {"x": 60, "y": 60},
           "hypergiant": true
+        },
+        {
+          "id": 12,
+          "label": "Regulus",
+          "linkedTo": [
+            {"starId": 5, "distance": 190},
+            {"starId": 10, "distance": 170},
+            {"starId": 11, "distance": 150}
+          ],
+          "radius": 1.1,
+          "timeToEat": 3,
+          "amountOfEnergy": 2,
+          "researchEffect": -7,
+          "coordenates": {"x": 120, "y": 120},
+          "hypergiant": false
         }
       ]
     }

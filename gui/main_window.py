@@ -158,13 +158,15 @@ class MainWindow:
         try:
             if not start_star_id:
                 messagebox.showwarning("Advertencia", "Selecciona una estrella inicial primero")
-                return
+                return []
             
             # Obtener datos del burro desde el panel de control
             burro_data = self.control_panel.get_burro_data()
             
             from src.algorithms.path_finder import PathFinder
             finder = PathFinder(self.graph)
+            
+            route = []
             
             if algorithm_type == "max_stars":
                 route = finder.find_max_stars_route(
@@ -175,17 +177,20 @@ class MainWindow:
                     burro_data['grass'],
                     burro_data['death_age']
                 )
-            elif algorithm_type == "to_destination" and end_star_id:
+            elif algorithm_type == "to_destination":
+                if not end_star_id:
+                    messagebox.showwarning("Advertencia", "Selecciona una estrella destino primero (clic derecho)")
+                    return []
                 # Ruta a destino específico
                 route = finder.find_route_to_destination(start_star_id, end_star_id)
-            else:
-                # Ruta óptima
+            elif algorithm_type == "optimal_route":
+                # Ruta óptima - CORREGIDO: usar solo los parámetros necesarios
                 route = finder.find_optimal_route(
                     start_star_id,
                     burro_data['health_state'],
                     burro_data['initial_energy'],
                     burro_data['grass'],
-                    burro_data['health_state']
+                    burro_data['health_state']  # Estado de salud actual
                 )
             
             if route:
@@ -198,7 +203,7 @@ class MainWindow:
                 # Mostrar información
                 self.control_panel.show_route_info(route, total_distance)
                 
-                return route  # IMPORTANTE: retornar la ruta calculada
+                return route
             else:
                 messagebox.showwarning("Advertencia", "No se pudo calcular una ruta válida")
                 return []

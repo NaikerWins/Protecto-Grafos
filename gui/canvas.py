@@ -235,7 +235,21 @@ class StarCanvas(tk.Canvas):
         projection = (x1 + t * line_vec[0], y1 + t * line_vec[1])
         
         return math.sqrt((px - projection[0])**2 + (py - projection[1])**2)
-    
+
+    def highlight_selected_stars(self, start_star_id, end_star_id):
+        """Resalta las estrellas seleccionadas como inicio y fin"""
+        self.reset_highlight()
+        
+        # Resaltar estrella inicial
+        if start_star_id and start_star_id in self.star_objects:
+            star_data = self.star_objects[start_star_id]
+            self.itemconfig(star_data['circle'], outline="green", width=4)
+        
+        # Resaltar estrella final
+        if end_star_id and end_star_id in self.star_objects:
+            star_data = self.star_objects[end_star_id]
+            self.itemconfig(star_data['circle'], outline="red", width=4)
+
     def toggle_connection_block(self, connection_data):
         star1_id = connection_data['star1']
         star2_id = connection_data['star2']
@@ -291,18 +305,31 @@ class StarCanvas(tk.Canvas):
         if not route:
             return
         
+        # Resaltar todas las estrellas de la ruta
         for i, star_id in enumerate(route):
             if star_id in self.star_objects:
                 star_data = self.star_objects[star_id]
-                color = "green" if i == 0 else "blue" if i == len(route)-1 else "orange"
-                self.itemconfig(star_data['circle'], outline=color, width=4)
+                
+                # Asignar colores según la posición en la ruta
+                if i == 0:  # Inicio
+                    color = "green"
+                    width = 4
+                elif i == len(route) - 1:  # Final
+                    color = "red"
+                    width = 4
+                else:  # Intermedias
+                    color = "orange"
+                    width = 3
+                
+                self.itemconfig(star_data['circle'], outline=color, width=width)
         
+        # Resaltar las conexiones de la ruta
         for i in range(len(route) - 1):
             star1_id, star2_id = route[i], route[i+1]
             key = tuple(sorted([star1_id, star2_id]))
             if key in self.connection_objects:
                 connection_data = self.connection_objects[key]
-                self.itemconfig(connection_data['line_id'], fill="green", width=4)
+                self.itemconfig(connection_data['line_id'], fill="green", width=3)
     
     def draw_burro(self, x, y):
         self.delete("burro")

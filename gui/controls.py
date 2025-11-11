@@ -273,9 +273,6 @@ class ControlPanel(ttk.Frame):
         self.route_text.insert(tk.END, "Información de la ruta aparecerá aquí...\n\n")
         self.route_text.config(state=tk.DISABLED)
 
-    # ... (el resto de los métodos se mantienen IGUAL desde aquí)
-    # Solo copia todos los otros métodos EXCEPTO setup_ui que ya está corregido
-    
     def set_selected_star(self, star_id, is_right_click=False):
         if self.main_app.graph:
             star = self.main_app.graph.get_star_by_id(star_id)
@@ -286,6 +283,13 @@ class ControlPanel(ttk.Frame):
                 else:
                     self.selected_start_star = star_id
                     self.start_star_var.set(f"{star.label} (ID: {star.id})")
+                
+                # Actualizar resaltado en el canvas
+                if hasattr(self.main_app, 'canvas'):
+                    self.main_app.canvas.highlight_selected_stars(
+                        self.selected_start_star, 
+                        self.selected_end_star
+                    )
     
     def toggle_obstacle_mode(self):
         self.obstacle_mode = not self.obstacle_mode
@@ -338,7 +342,16 @@ class ControlPanel(ttk.Frame):
             return
         
         algorithm_type = self.algorithm_var.get()
-        self.main_app.calculate_route(self.selected_start_star, algorithm_type, self.selected_end_star)
+        
+        # VERIFICAR que si es "to_destination", haya una estrella final seleccionada
+        if algorithm_type == "to_destination" and not self.selected_end_star:
+            messagebox.showwarning("Advertencia", "Para 'A Destino Específico' selecciona también una estrella destino (clic derecho)")
+            return
+        
+        # Pasar explícitamente la estrella final solo cuando sea necesario
+        end_star = self.selected_end_star if algorithm_type == "to_destination" else None
+        
+        self.main_app.calculate_route(self.selected_start_star, algorithm_type, end_star)
     
     def start_step_by_step_journey(self):
         """Inicia el viaje paso a paso con interacción del usuario"""
@@ -810,20 +823,47 @@ class ControlPanel(ttk.Frame):
             self.route_text.config(state=tk.DISABLED)
             return
         
-        self.route_text.insert(tk.END, f"RUTA CALCULADA\n")
-        self.route_text.insert(tk.END, f"{'='*30}\n\n")
+        algorithm_type = self.algorithm_var.get()
+        
+        self.route_text.insert(tk.END, f"RUTA CALCULADA - {algorithm_type.upper()}\n")
+        self.route_text.insert(tk.END, f"{'='*40}\n\n")
         
         self.route_text.insert(tk.END, f"Total de estrellas: {len(route)}\n")
         self.route_text.insert(tk.END, f"Distancia total: {total_distance:.1f} años luz\n")
-        self.route_text.insert(tk.END, f"Tipo de algoritmo: {self.algorithm_var.get()}\n\n")
         
-        self.route_text.insert(tk.END, "Secuencia de estrellas:\n")
+        # Información específica por tipo de algoritmo
+        if algorithm_type == "max_stars":
+            self.route_text.insert(tk.END, "Objetivo: Visitar la mayor cantidad de estrellas antes de morir\n")
+        elif algorithm_type == "to_destination":
+            self.route_text.insert(tk.END, "Objetivo: Ruta más corta al destino específico\n")
+        elif algorithm_type == "optimal_route":
+            self.route_text.insert(tk.END, "Objetivo: Máxima eficiencia de recursos (estrellas/consumo)\n")
+        
+        self.route_text.insert(tk.END, f"\nSecuencia de estrellas:\n")
         for i, star_id in enumerate(route):
             star = self.main_app.graph.get_star_by_id(star_id)
             if star:
-                prefix = "🚀 INICIO → " if i == 0 else f"{i}. "
-                suffix = " ← FINAL 🏁" if i == len(route)-1 else ""
-                self.route_text.insert(tk.END, f"{prefix}{star.label}{suffix}\n")
+                if i == 0:
+                    prefix = "🚀 INICIO → "
+                elif i == len(route)-1:
+                    prefix = f"{i}. "
+                    if algorithm_type == "optimal_route":
+                        prefix += "🏁 FINAL (ÓPTIMO) → "
+                    else:
+                        prefix += "🏁 FINAL → "
+                else:
+                    prefix = f"{i}. "
+                
+                # Mostrar información adicional para rutas óptimas
+                extra_info = ""
+                if algorithm_type == "optimal_route" and i > 0:
+                    # Calcular distancia desde la estrella anterior
+                    prev_star_id = route[i-1]
+                    distance = self.calculate_distance(prev_star_id, star_id)
+                    if distance:
+                        extra_info = f" [{distance} años luz]"
+                
+                self.route_text.insert(tk.END, f"{prefix}{star.label}{extra_info}\n")
         
         self.route_text.config(state=tk.DISABLED)
     

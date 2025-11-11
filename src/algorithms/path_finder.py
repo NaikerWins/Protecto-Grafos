@@ -57,55 +57,174 @@ class PathFinder:
         
         return best_route
     
-    def find_optimal_route(self, start_star_id, initial_health, initial_energy, 
-                          initial_grass, health_state):
+    def find_optimal_route(self, start_star_id, initial_health, initial_energy, initial_grass, health_state):
         """
-        3. Encuentra la ruta óptima que maximiza estrellas con mínimo gasto
-        Considera comer automáticamente cuando energía < 50%
+        3. Encuentra la ruta óptima que maximiza estrellas visitadas 
+        con mínimo consumo de recursos
         """
         start_star_id = str(start_star_id)
+        start_star = self.graph.get_star_by_id(start_star_id)
+        if not start_star:
+            return [start_star_id]
         
-        # Crear burro simulado
-        burro = Burro(initial_health, initial_energy, initial_grass, 0, float('inf'))
+        # Crear burro simulado para calcular consumo
+        from models.burro import Burro
+        simulated_burro = Burro(health_state, initial_energy, initial_grass, 0, float('inf'))
         
         visited = set([start_star_id])
         route = [start_star_id]
         current_star_id = start_star_id
         
-        while not burro.is_dead() and len(visited) < len(self.graph.all_stars):
-            # Encontrar la estrella más eficiente para visitar
+        # Continuar mientras el burro esté vivo y queden estrellas por visitar
+        while (not simulated_burro.is_dead() and 
+               len(visited) < len(self.graph.all_stars)):
+            
+            # Encontrar la mejor estrella siguiente basada en eficiencia
             best_next_star = None
-            best_efficiency = -1
+            best_efficiency = -float('inf')
+            min_distance = float('inf')
             
             adjacent_stars = self.graph.get_adjacent_stars(current_star_id)
+            
             for neighbor_id, distance in adjacent_stars:
                 if neighbor_id not in visited:
-                    # Calcular eficiencia (distancia vs energía disponible)
-                    efficiency = self._calculate_star_efficiency(distance, burro)
-                    if efficiency > best_efficiency:
+                    # Calcular eficiencia considerando múltiples factores
+                    efficiency = self._calculate_star_efficiency(
+                        distance, simulated_burro, neighbor_id
+                    )
+                    
+                    # Preferir estrellas con mejor eficiencia y menor distancia
+                    if efficiency > best_efficiency or (efficiency == best_efficiency and distance < min_distance):
                         best_efficiency = efficiency
                         best_next_star = neighbor_id
+                        min_distance = distance
             
-            if best_next_star and burro.travel(distance):
-                # Visitar la estrella (comer automáticamente si es necesario)
-                star = self.graph.get_star_by_id(best_next_star)
-                if star:
-                    research_time = star.time_to_eat * 0.5  # 50% para investigación
-                    burro.visit_star(star, research_time)
-                    
-                    route.append(best_next_star)
-                    visited.add(best_next_star)
-                    current_star_id = best_next_star
+            if best_next_star:
+                # Simular viaje a la estrella seleccionada
+                if simulated_burro.travel(min_distance):
+                    # Visitar la estrella (comer automáticamente si es necesario)
+                    next_star = self.graph.get_star_by_id(best_next_star)
+                    if next_star:
+                        # Investigación automática (50% del tiempo)
+                        research_time = next_star.time_to_eat * 0.5
+                        simulated_burro.visit_star(next_star, research_time)
+                        
+                        # Si el burro sigue vivo después de la visita, añadir a la ruta
+                        if not simulated_burro.is_dead():
+                            route.append(best_next_star)
+                            visited.add(best_next_star)
+                            current_star_id = best_next_star
+                        else:
+                            break
+                    else:
+                        break
                 else:
-                    break
+                    break  # Burro murió durante el viaje
             else:
-                break
+                break  # No hay más estrellas accesibles
         
         return route
     
+    def _calculate_star_efficiency(self, distance, burro, star_id):
+        """Calcula la eficiencia de visitar una estrella considerando múltiples factores"""
+        star = self.graph.get_star_by_id(star_id)
+        if not star:
+            return -float('inf')
+        
+        # Factor 1: Eficiencia energética (preferir estrellas cercanas)
+        distance_factor = 100.0 / (distance + 1)  # +1 para evitar división por cero
+        
+        # Factor 2: Estado del burro (si tiene poca energía, priorizar estrellas con buen research_effect)
+        energy_factor = 1.0
+        if burro.current_energy < 30:
+            # Priorizar estrellas que den energía positiva
+            energy_factor = max(1.0, star.research_effect * 2)
+        
+        # Factor 3: Eficiencia de investigación (preferir estrellas con buen research_effect)
+        research_factor = 1.0 + (star.research_effect * 0.1)
+        
+        # Factor 4: Tiempo de comida (preferir estrellas con menos tiempo de comida)
+        time_factor = 5.0 / (star.time_to_eat + 1)
+        
+        # Factor 5: Hipergigantes (darles prioridad moderada)
+        hypergiant_factor = 1.5 if star.hypergiant else 1.0
+        
+        # Combinar todos los factores
+        efficiency = (distance_factor * 0.4 + 
+                     energy_factor * 0.2 + 
+                     research_factor * 0.2 + 
+                     time_factor * 0.1 + 
+                     hypergiant_factor * 0.1)
+        
+        # Penalizar si el burro tiene muy poca energía y la estrella está lejos
+        if burro.current_energy < 20 and distance > 100:
+            efficiency *= 0.5
+        
+        return efficiency
+    
     def find_route_to_destination(self, start_star_id, end_star_id):
-        """Encuentra ruta más corta a destino específico"""
-        return self._a_star_search(start_star_id, end_star_id)
+        """Encuentra ruta más corta a destino específico usando Dijkstra mejorado"""
+        start_star_id = str(start_star_id)
+        end_star_id = str(end_star_id)
+        
+        # Verificar que las estrellas existen
+        start_star = self.graph.get_star_by_id(start_star_id)
+        end_star = self.graph.get_star_by_id(end_star_id)
+        
+        if not start_star or not end_star:
+            return []
+        
+        # Si es la misma estrella
+        if start_star_id == end_star_id:
+            return [start_star_id]
+        
+        # Usar Dijkstra para encontrar el camino más corto
+        distances = {star_id: float('inf') for star_id in self.graph.all_stars}
+        previous = {star_id: None for star_id in self.graph.all_stars}
+        distances[start_star_id] = 0
+        
+        # Usar una cola de prioridad
+        import heapq
+        pq = [(0, start_star_id)]
+        
+        while pq:
+            current_distance, current_star_id = heapq.heappop(pq)
+            
+            # Si llegamos al destino, terminar
+            if current_star_id == end_star_id:
+                break
+            
+            # Si la distancia actual es mayor que la almacenada, ignorar
+            if current_distance > distances[current_star_id]:
+                continue
+            
+            # Explorar vecinos
+            adjacent_stars = self.graph.get_adjacent_stars(current_star_id)
+            for neighbor_id, distance in adjacent_stars:
+                # Verificar que la conexión no esté bloqueada
+                if self.graph.is_edge_blocked(current_star_id, neighbor_id):
+                    continue
+                    
+                new_distance = current_distance + distance
+                
+                if new_distance < distances[neighbor_id]:
+                    distances[neighbor_id] = new_distance
+                    previous[neighbor_id] = current_star_id
+                    heapq.heappush(pq, (new_distance, neighbor_id))
+        
+        # Reconstruir el camino desde el destino hasta el inicio
+        route = []
+        current = end_star_id
+        
+        # Si no hay camino al destino
+        if distances[end_star_id] == float('inf'):
+            return []
+        
+        while current is not None:
+            route.append(current)
+            current = previous.get(current)
+        
+        return route[::-1]  # Invertir para que quede inicio->destino
     
     def _a_star_search(self, start_star_id, end_star_id):
         """Algoritmo A* para encontrar el camino más corto"""
